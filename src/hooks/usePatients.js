@@ -1,17 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 
-const GAS_BASE = import.meta.env.VITE_GAS_URL;
-
-const params = new URLSearchParams({
-  token: import.meta.env.VITE_API_TOKEN,
-  clinique: import.meta.env.VITE_CLINIQUE,
-});
-
-// In dev the Vite middleware proxies the request server-to-server,
-// bypassing the CORS issue caused by Google's 302 redirect chain.
-const API_URL = import.meta.env.DEV
-  ? `/api/gas?${params}`
-  : `${GAS_BASE}?${params}`;
+const GAS_URL = import.meta.env.VITE_GAS_URL;
+const TOKEN = import.meta.env.VITE_API_TOKEN;
+const CLINIQUE = import.meta.env.VITE_CLINIQUE;
 
 export function usePatients() {
   const [patients, setPatients] = useState([]);
@@ -22,20 +13,14 @@ export function usePatients() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`Erreur HTTP ${res.status} — ${res.statusText}`);
+      const params = new URLSearchParams({ token: TOKEN, type: 'patients' });
+      if (CLINIQUE) params.append('clinique', CLINIQUE);
+      const res = await fetch(`${GAS_URL}?${params}`);
+      if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
       const data = await res.json();
-      // Accept array, { patients }, { users } (GAS), or { data }
-      const list = Array.isArray(data)
-        ? data
-        : (data.patients ?? data.users ?? data.data ?? []);
-      if (!Array.isArray(list)) throw new Error('Format de réponse inattendu.');
       if (data.error) throw new Error(data.error);
-      setPatients(list.map(p => ({
-        ...p,
-        statut:      p.statut      ?? p.statut_suivi,
-        date_intake: p.date_intake ?? p.created_at,
-      })));
+      const list = Array.isArray(data) ? data : (data.patients ?? data.data ?? []);
+      setPatients(list.map(p => ({ ...p, statut: p.statut ?? p.statut_suivi, date_intake: p.date_intake ?? p.created_at })));
     } catch (err) {
       setError(err.message || 'Impossible de joindre le serveur.');
     } finally {
@@ -44,6 +29,5 @@ export function usePatients() {
   }, []);
 
   useEffect(() => { fetchPatients(); }, [fetchPatients]);
-
   return { patients, loading, error, refetch: fetchPatients };
 }

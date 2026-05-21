@@ -1,15 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 
-const GAS_BASE = import.meta.env.VITE_GAS_URL;
-
-const params = new URLSearchParams({
-  token: import.meta.env.VITE_API_TOKEN,
-  type: 'cliniques',
-});
-
-const API_URL = import.meta.env.DEV
-  ? `/api/gas?${params}`
-  : `${GAS_BASE}?${params}`;
+const GAS_URL = import.meta.env.VITE_GAS_URL;
+const TOKEN = import.meta.env.VITE_API_TOKEN;
 
 export function useCliniques() {
   const [cliniques, setCliniques] = useState([]);
@@ -20,18 +12,13 @@ export function useCliniques() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`Erreur HTTP ${res.status} — ${res.statusText}`);
+      const params = new URLSearchParams({ token: TOKEN, type: 'cliniques' });
+      const res = await fetch(`${GAS_URL}?${params}`);
+      if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      const list = Array.isArray(data)
-        ? data
-        : (data.cliniques ?? data.data ?? []);
-      if (!Array.isArray(list)) throw new Error('Format de réponse inattendu.');
-      // Normalize: accept array of strings or array of objects with nom/nom_clinique/name
-      const names = list.map(c =>
-        typeof c === 'string' ? c : (c.nom ?? c.nom_clinique ?? c.name ?? String(c))
-      ).filter(Boolean);
+      const list = Array.isArray(data) ? data : (data.cliniques ?? data.data ?? []);
+      const names = list.map(c => typeof c === 'string' ? c : (c.nom ?? c.nom_clinique ?? c.name ?? String(c))).filter(Boolean);
       setCliniques(names);
     } catch (err) {
       setError(err.message || 'Impossible de charger les cliniques.');
@@ -41,6 +28,5 @@ export function useCliniques() {
   }, []);
 
   useEffect(() => { fetchCliniques(); }, [fetchCliniques]);
-
   return { cliniques, loading, error, refetch: fetchCliniques };
 }
