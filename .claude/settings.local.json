@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"C:\\\\Users\\\\Dell PC\\\\kinoa-dashboard\\\\dist\\\\assets\"; $content = Get-Content \"index-Dx-oWXdJ.js\" -Raw; [bool]\\($content -match \"panel-overlay\"\\), [bool]\\($content -match \"td-contact\"\\), [bool]\\($content -match \"id_patient\"\\), [bool]\\($content -match \"score_j7\"\\))",
+      "PowerShell(cd \"C:\\\\Users\\\\Dell PC\\\\kinoa-dashboard\\\\dist\\\\assets\"; $content = Get-Content \"index-DnBseN3x.css\" -Raw; [bool]\\($content -match \"panel-overlay\"\\), [bool]\\($content -match \"td-contact\"\\), [bool]\\($content -match \"modal-overlay\"\\), [bool]\\($content -match \"modal-panel\"\\))"
+    ]
+  }
+}

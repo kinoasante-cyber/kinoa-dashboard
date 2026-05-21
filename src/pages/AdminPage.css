@@ -1,0 +1,529 @@
+/* ── Admin Login ──────────────────────────────────── */
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.admin-login-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 8px 40px rgba(26,35,64,.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.admin-login-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-login-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  text-align: center;
+}
+
+.admin-login-sub {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -16px;
+}
+
+.admin-login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-login-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .15s;
+}
+
+.admin-login-input:focus  { border-color: var(--orange); }
+.admin-login-input--error { border-color: #EF4444; }
+
+.admin-login-error {
+  font-size: 12px;
+  color: #EF4444;
+  font-weight: 500;
+}
+
+.admin-login-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.admin-login-btn:hover { opacity: .88; }
+
+/* ── Layout ───────────────────────────────────────── */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+.admin-sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 16px;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+.admin-sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 28px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 24px;
+}
+
+.admin-sidebar-links {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: rgba(255,255,255,.55);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Sora', sans-serif;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background .15s, color .15s;
+}
+
+.admin-nav-item:hover {
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.85);
+}
+
+.admin-nav-item--active {
+  background: rgba(232,71,10,.2);
+  color: #fff;
+}
+
+.admin-sidebar-footer {
+  padding: 14px 8px 0;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.admin-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: transparent;
+  color: rgba(255,255,255,.55);
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  text-align: left;
+}
+
+.admin-logout-btn:hover {
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.85);
+}
+
+/* ── Main ─────────────────────────────────────────── */
+.admin-main {
+  flex: 1;
+  padding: 32px 36px 56px;
+  min-width: 0;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.admin-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.admin-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+/* ── Section title ────────────────────────────────── */
+.admin-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin: 28px 0 14px;
+}
+
+/* ── Global stats ─────────────────────────────────── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+/* ── Status breakdown ─────────────────────────────── */
+.status-breakdown {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.breakdown-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.breakdown-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Clinic cards ─────────────────────────────────── */
+.clinic-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.clinic-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  border-top: 4px solid var(--orange);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: box-shadow .15s;
+}
+
+.clinic-card:hover {
+  box-shadow: 0 4px 24px rgba(26,35,64,.11), 0 1px 4px rgba(26,35,64,.06);
+}
+
+.clinic-card-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.clinic-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--orange), #FF7340);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.clinic-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 2px;
+}
+
+.clinic-count-line {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.clinic-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--orange);
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* ── Clinic URL field ─────────────────────────────── */
+.clinic-url-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.clinic-url-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11.5px;
+  color: var(--muted);
+  outline: none;
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clinic-url-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: none;
+  border-left: 1.5px solid var(--border);
+  background: var(--surface);
+  font-family: 'Sora', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.clinic-url-copy:hover {
+  background: var(--bg);
+  color: var(--orange);
+}
+
+.clinic-url-copy--copied {
+  color: #16A34A !important;
+  background: #DCFCE7 !important;
+}
+
+/* ── See patients button ──────────────────────────── */
+.btn-see-patients {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  background: var(--navy);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+  align-self: flex-start;
+}
+
+.btn-see-patients:hover { opacity: .85; }
+
+/* ── Detail view ──────────────────────────────────── */
+.detail-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+
+.detail-back-btn:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.detail-summary {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.detail-stat {
+  background: var(--surface);
+  border-radius: 10px;
+  border-top: 3px solid;
+  padding: 14px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 90px;
+}
+
+.detail-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.detail-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+
+/* ── Patient table ────────────────────────────────── */
+.admin-table-wrap {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead tr { border-bottom: 2px solid var(--border); }
+
+.admin-table th {
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 13px 16px;
+  font-size: 13.5px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr:hover { background: #F5F6FB; }
+
+/* ── Loading / error ──────────────────────────────── */
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px;
+  color: var(--muted);
+  font-size: 14px;
+  gap: 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.admin-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 1100px) {
+  .admin-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar { width: 60px; padding: 16px 8px; }
+  .admin-sidebar-logo .logo-name,
+  .admin-sidebar-logo .logo-clinic,
+  .admin-nav-item span,
+  .admin-logout-btn span { display: none; }
+  .admin-main { padding: 20px 16px; }
+  .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+  .clinic-cards { grid-template-columns: 1fr; }
+  .detail-summary { flex-wrap: wrap; }
+}
