@@ -97,7 +97,6 @@ function HomeView() {
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const clinique = params.get('clinique');
-  if (!clinique) return <HomeView />;
   return <DashboardView clinique={clinique} />;
 }
 
