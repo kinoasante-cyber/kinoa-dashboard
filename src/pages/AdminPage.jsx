@@ -9,7 +9,7 @@ import './AdminPage.css';
 
 const ADMIN_PASSWORD = 'KINOA_ADMIN_2026';
 const AUTH_KEY = 'kinoa_admin_auth';
-const BASE_URL = 'https://kinoa-dashboard.netlify.app';
+const BASE_URL = 'https://kinoa-dashboard.vercel.app';
 
 /* ── Icons ──────────────────────────────────────────── */
 function IconUsers() {

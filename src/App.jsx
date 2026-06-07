@@ -1,6 +1,7 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { STATUTS } from './data/patients';
 import { usePatients } from './hooks/usePatients';
+import { useAllPatients } from './hooks/useAllPatients';
 import { useCliniques } from './hooks/useCliniques';
 import StatCard from './components/StatCard';
 import PatientRow from './components/PatientRow';
@@ -21,48 +22,75 @@ function IconCalendar() { return <svg viewBox="0 0 24 24" fill="none" stroke="cu
 function IconChart() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>; }
 function IconSearch() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>; }
 function IconRefresh() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>; }
-function IconCopy() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>; }
+function IconBuilding() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>; }
+function IconCopy() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>; }
 
 function SkeletonCard() { return <div className="stat-card skeleton-card"><div className="skeleton skeleton-icon" /><div style={{ flex: 1 }}><div className="skeleton" style={{ height: 28, width: '60%', borderRadius: 6, marginBottom: 8 }} /><div className="skeleton" style={{ height: 12, width: '80%', borderRadius: 4 }} /></div></div>; }
 function SkeletonRow() { return <tr className="skeleton-row">{[140,90,150,50,180,110,70,110,70,80].map((w,i) => <td key={i}><div className="skeleton" style={{ height: 14, width: w, borderRadius: 4 }} /></td>)}</tr>; }
 function ErrorPanel({ message, onRetry }) { return <div className="error-panel"><div className="error-icon"><IconAlert /></div><h3 className="error-title">Impossible de charger les donnees</h3><p className="error-msg">{message}</p><button className="retry-btn" onClick={onRetry}><IconRefresh /> Reessayer</button></div>; }
 
-function CliniqueCard({ nom, isAll }) {
-  const url = isAll ? `${window.location.origin}/` : `${window.location.origin}/?clinique=${encodeURIComponent(nom)}`;
+function ClinicStatCard({ nom, patients }) {
   const [copied, setCopied] = useState(false);
+  const rouge = patients.filter(p => p.statut === 'ROUGE').length;
+  const jaune = patients.filter(p => p.statut === 'JAUNE').length;
+  const vert  = patients.filter(p => p.statut === 'VERT').length;
+  const navUrl = `/?clinique=${encodeURIComponent(nom)}`;
+  const fullUrl = `https://kinoa-dashboard.vercel.app/?clinique=${encodeURIComponent(nom)}`;
 
   function handleCopy(e) {
     e.stopPropagation();
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '20px 24px', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', transition: 'box-shadow 0.2s' }}
-      onClick={() => { window.location.href = url; }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(232,71,10,0.15)'}
-      onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)'}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <div style={{ background: isAll ? '#1A2340' : '#E8470A', color: '#fff', borderRadius: 8, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, flexShrink: 0 }}>
-          {isAll ? '★' : nom.charAt(0).toUpperCase()}
+    <div className="clinic-stat-card" onClick={() => { window.location.href = navUrl; }}>
+      <div className="clinic-card-header">
+        <div className="clinic-avatar">{nom.charAt(0).toUpperCase()}</div>
+        <div className="clinic-card-info">
+          <p className="clinic-card-name">{nom}</p>
+          <p className="clinic-card-count">{patients.length} patient{patients.length !== 1 ? 's' : ''} actif{patients.length !== 1 ? 's' : ''}</p>
         </div>
-        <div>
-          <p style={{ fontWeight: 600, fontSize: 16, color: '#1A2340', margin: 0 }}>{isAll ? 'Tous les patients' : nom}</p>
-          <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>{isAll ? 'Vue globale toutes cliniques' : 'Voir les patients'}</p>
-        </div>
+        <span className="clinic-card-arrow">→</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px' }}
-        onClick={handleCopy}>
-        <span style={{ fontSize: 11, color: '#6b7280', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
-        <span style={{ color: copied ? '#22c55e' : '#E8470A', flexShrink: 0 }}>{copied ? '✓' : <IconCopy />}</span>
+      <div className="clinic-url-bar" onClick={e => e.stopPropagation()}>
+        <span className="clinic-url-text">{fullUrl}</span>
+        <button className={`clinic-url-btn${copied ? ' clinic-url-btn--copied' : ''}`} onClick={handleCopy}>
+          {copied ? '✓ Copié !' : <><IconCopy /> Copier le lien</>}
+        </button>
+      </div>
+      <div className="clinic-statuts">
+        {rouge > 0 && <span className="cstat-pill cstat-rouge"><span className="cstat-dot" />{rouge} critique{rouge !== 1 ? 's' : ''}</span>}
+        {jaune > 0 && <span className="cstat-pill cstat-jaune"><span className="cstat-dot" />{jaune} surveillance</span>}
+        {vert  > 0 && <span className="cstat-pill cstat-vert"><span className="cstat-dot" />{vert} ok</span>}
+        {patients.length === 0 && <span className="cstat-empty">Aucun patient</span>}
       </div>
     </div>
   );
 }
 
-function HomeView() {
-  const { cliniques, loading, error, refetch } = useCliniques();
+function CliniquesView() {
+  const { cliniques, loading: clLoading, error: clError, refetch: clRefetch } = useCliniques();
+  const { patients, loading: pLoading, error: pError, refetch: pRefetch } = useAllPatients();
+
+  const loading = clLoading || pLoading;
+  const error = clError || pError;
+
+  const byClinic = useMemo(() => {
+    const map = {};
+    patients.forEach(p => {
+      const c = p.clinique ?? p.nom_clinique ?? p.clinic ?? '';
+      if (!c) return;
+      if (!map[c]) map[c] = [];
+      map[c].push(p);
+    });
+    return map;
+  }, [patients]);
+
+  function refetch() { clRefetch(); pRefetch(); }
+
   return (
     <div className="layout">
       <aside className="sidebar">
@@ -71,7 +99,8 @@ function HomeView() {
           <div><p className="logo-name">Kinoa</p><p className="logo-clinic">Dashboard</p></div>
         </div>
         <nav className="sidebar-nav">
-          <a href="/" className="nav-item nav-item--active"><IconUsers /> Cliniques</a>
+          <a href="/" className="nav-item"><IconUsers /> Patients</a>
+          <a href="/?view=cliniques" className="nav-item nav-item--active"><IconBuilding /> Cliniques</a>
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-avatar">K</div>
@@ -80,14 +109,21 @@ function HomeView() {
       </aside>
       <main className="main">
         <header className="page-header">
-          <div><h1 className="page-title">Tableau de bord</h1><p className="page-sub">Selectionnez une clinique · {today.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+          <div>
+            <h1 className="page-title">Cliniques</h1>
+            <p className="page-sub">Sélectionnez une clinique · {today.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          </div>
           {!loading && <button className="refresh-btn" onClick={refetch} title="Actualiser"><IconRefresh /></button>}
         </header>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginTop: 24 }}>
-          <CliniqueCard nom="Tous" isAll={true} />
-          {loading && <p style={{ color: '#6b7280' }}>Chargement des cliniques...</p>}
-          {error && <ErrorPanel message={error} onRetry={refetch} />}
-          {!loading && !error && cliniques.map(nom => <CliniqueCard key={nom} nom={nom} />)}
+        <div className="cliniques-grid">
+          {loading && <p style={{ color: 'var(--muted)', gridColumn: '1/-1' }}>Chargement des cliniques...</p>}
+          {!loading && error && <ErrorPanel message={error} onRetry={refetch} />}
+          {!loading && !error && cliniques.map(nom => (
+            <ClinicStatCard key={nom} nom={nom} patients={byClinic[nom] ?? []} />
+          ))}
+          {!loading && !error && cliniques.length === 0 && (
+            <p style={{ color: 'var(--muted)', gridColumn: '1/-1' }}>Aucune clinique trouvée.</p>
+          )}
         </div>
       </main>
     </div>
@@ -97,7 +133,11 @@ function HomeView() {
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const clinique = params.get('clinique');
-  return <DashboardView clinique={clinique} />;
+  const view = params.get('view');
+
+  if (clinique) return <DashboardView clinique={clinique} />;
+  if (view === 'cliniques') return <CliniquesView />;
+  return <DashboardView clinique={null} />;
 }
 
 function DashboardView({ clinique }) {
@@ -120,18 +160,21 @@ function DashboardView({ clinique }) {
   }, [patients, search, filterStatut, sortKey, sortDir]);
 
   function handleSort(key) { if (key === sortKey) setSortDir(d => -d); else { setSortKey(key); setSortDir(1); } }
-  function SortTh({ label, k }) { const active = sortKey === k; return <th onClick={() => handleSort(k)} className={`th-sortable${active ? ' th-active' : ''}`}>{label} <span className="sort-arrow">{active ? (sortDir === 1 ? '\u2191' : '\u2193') : '\u2195'}</span></th>; }
+  function SortTh({ label, k }) { const active = sortKey === k; return <th onClick={() => handleSort(k)} className={`th-sortable${active ? ' th-active' : ''}`}>{label} <span className="sort-arrow">{active ? (sortDir === 1 ? '↑' : '↓') : '↕'}</span></th>; }
 
   return (
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-mark">K</div>
-          <div><p className="logo-name">Kinoa</p><p className="logo-clinic">{clinique === null ? 'Toutes' : clinique}</p></div>
+          <div><p className="logo-name">Kinoa</p><p className="logo-clinic">{clinique ?? 'Toutes'}</p></div>
         </div>
         <nav className="sidebar-nav">
-          <a href="/" className="nav-item" style={{ marginBottom: 4, fontSize: 12, opacity: 0.7 }}>← Toutes les cliniques</a>
-          <a href="#" className="nav-item nav-item--active"><IconUsers /> Patients</a>
+          {clinique && (
+            <a href="/?view=cliniques" className="nav-item nav-item--back">← Toutes les cliniques</a>
+          )}
+          <a href="/" className="nav-item nav-item--active"><IconUsers /> Patients</a>
+          <a href="/?view=cliniques" className="nav-item"><IconBuilding /> Cliniques</a>
           <a href="#" className="nav-item"><IconCalendar /> Agenda</a>
           <a href="#" className="nav-item"><IconChart /> Rapports</a>
           <a href="#" className="nav-item"><IconAlert /> Alertes{counts.ROUGE > 0 && <span className="nav-badge">{counts.ROUGE}</span>}</a>
@@ -143,7 +186,10 @@ function DashboardView({ clinique }) {
       </aside>
       <main className="main">
         <header className="page-header">
-          <div><h1 className="page-title">Tableau de bord</h1><p className="page-sub">{clinique ? `Clinique ${clinique}` : 'Tous les patients'} · {today.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+          <div>
+            <h1 className="page-title">{clinique ?? 'Tableau de bord'}</h1>
+            <p className="page-sub">{clinique ? `Clinique ${clinique}` : 'Tous les patients'} · {today.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          </div>
           {!loading && <button className="refresh-btn" onClick={refetch} title="Actualiser"><IconRefresh /></button>}
         </header>
         <div className="stats-grid">
