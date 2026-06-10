@@ -812,6 +812,12 @@ body {
   margin-bottom: 4px;
 }
 
+.clinic-url-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 4px 0;
+}
+
 .clinic-url-text {
   flex: 1;
   min-width: 0;

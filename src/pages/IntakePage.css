@@ -1,0 +1,179 @@
+/* ── Intake Page ──────────────────────────────────── */
+.intake-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 40px 16px;
+}
+
+.intake-card {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(26,35,64,.12);
+  width: 100%;
+  max-width: 560px;
+  padding: 40px;
+}
+
+.intake-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.intake-logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+.intake-partner {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 6px 0 16px;
+}
+
+.intake-form-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--orange);
+  text-transform: uppercase;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin: 0;
+}
+
+.intake-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.intake-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.intake-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.intake-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.intake-field input,
+.intake-field select,
+.intake-field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .15s;
+}
+
+.intake-field input:focus,
+.intake-field select:focus,
+.intake-field textarea:focus {
+  border-color: var(--orange);
+}
+
+.intake-field textarea {
+  resize: vertical;
+}
+
+.intake-error {
+  font-size: 13px;
+  color: #EF4444;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+}
+
+.intake-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s;
+  margin-top: 8px;
+}
+
+.intake-submit-btn:hover { opacity: .88; }
+.intake-submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.intake-submit-btn--auto {
+  width: auto;
+  padding: 12px 28px;
+  margin-top: 0;
+}
+
+/* ── Success state ────────────────────────────────── */
+.intake-card--success {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.intake-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  color: #16A34A;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intake-success-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+.intake-success-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+/* ── Footer ───────────────────────────────────────── */
+.intake-footer {
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 560px;
+}
+
+@media (max-width: 600px) {
+  .intake-card { padding: 28px 20px; }
+  .intake-row { grid-template-columns: 1fr; }
+}

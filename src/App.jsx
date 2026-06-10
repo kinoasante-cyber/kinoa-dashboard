@@ -6,6 +6,7 @@ import { useCliniques } from './hooks/useCliniques';
 import StatCard from './components/StatCard';
 import PatientRow from './components/PatientRow';
 import PatientModal from './components/PatientModal';
+import IntakePage from './pages/IntakePage';
 import './App.css';
 
 const FILTER_ALL = 'TOUS';
@@ -24,6 +25,7 @@ function IconSearch() { return <svg viewBox="0 0 24 24" fill="none" stroke="curr
 function IconRefresh() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>; }
 function IconBuilding() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>; }
 function IconCopy() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>; }
+function IconClipboard() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>; }
 
 function SkeletonCard() { return <div className="stat-card skeleton-card"><div className="skeleton skeleton-icon" /><div style={{ flex: 1 }}><div className="skeleton" style={{ height: 28, width: '60%', borderRadius: 6, marginBottom: 8 }} /><div className="skeleton" style={{ height: 12, width: '80%', borderRadius: 4 }} /></div></div>; }
 function SkeletonRow() { return <tr className="skeleton-row">{[140,90,150,50,180,110,70,110,70,80].map((w,i) => <td key={i}><div className="skeleton" style={{ height: 14, width: w, borderRadius: 4 }} /></td>)}</tr>; }
@@ -31,17 +33,27 @@ function ErrorPanel({ message, onRetry }) { return <div className="error-panel">
 
 function ClinicStatCard({ nom, patients }) {
   const [copied, setCopied] = useState(false);
+  const [intakeCopied, setIntakeCopied] = useState(false);
   const rouge = patients.filter(p => p.statut === 'ROUGE').length;
   const jaune = patients.filter(p => p.statut === 'JAUNE').length;
   const vert  = patients.filter(p => p.statut === 'VERT').length;
   const navUrl = `/?clinique=${encodeURIComponent(nom)}`;
   const fullUrl = `https://kinoa-dashboard.vercel.app/?clinique=${encodeURIComponent(nom)}`;
+  const intakeUrl = `https://kinoa-dashboard.vercel.app/?view=intake&clinique=${encodeURIComponent(nom)}`;
 
   function handleCopy(e) {
     e.stopPropagation();
     navigator.clipboard.writeText(fullUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleIntakeCopy(e) {
+    e.stopPropagation();
+    navigator.clipboard.writeText(intakeUrl).then(() => {
+      setIntakeCopied(true);
+      setTimeout(() => setIntakeCopied(false), 2000);
     });
   }
 
@@ -59,6 +71,13 @@ function ClinicStatCard({ nom, patients }) {
         <span className="clinic-url-text">{fullUrl}</span>
         <button className={`clinic-url-btn${copied ? ' clinic-url-btn--copied' : ''}`} onClick={handleCopy}>
           {copied ? '✓ Copié !' : <><IconCopy /> Copier le lien</>}
+        </button>
+      </div>
+      <p className="clinic-url-label">📋 Formulaire d'admission</p>
+      <div className="clinic-url-bar" onClick={e => e.stopPropagation()}>
+        <span className="clinic-url-text">{intakeUrl}</span>
+        <button className={`clinic-url-btn${intakeCopied ? ' clinic-url-btn--copied' : ''}`} onClick={handleIntakeCopy}>
+          {intakeCopied ? '✓ Copié !' : <><IconClipboard /> Copier le lien</>}
         </button>
       </div>
       <div className="clinic-statuts">
@@ -135,6 +154,7 @@ export default function App() {
   const clinique = params.get('clinique');
   const view = params.get('view');
 
+  if (view === 'intake') return <IntakePage clinique={clinique} />;
   if (clinique) return <DashboardView clinique={clinique} />;
   if (view === 'cliniques') return <CliniquesView />;
   return <DashboardView clinique={null} />;
