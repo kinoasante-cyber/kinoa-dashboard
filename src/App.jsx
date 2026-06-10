@@ -168,7 +168,7 @@ function DashboardView({ clinique }) {
   const [sortKey, setSortKey] = useState('nom');
   const [sortDir, setSortDir] = useState(1);
 
-  const counts = useMemo(() => ({ ROUGE: patients.filter(p => p.statut === 'ROUGE').length, JAUNE: patients.filter(p => p.statut === 'JAUNE').length, VERT: patients.filter(p => p.statut === 'VERT').length }), [patients]);
+  const counts = useMemo(() => ({ ROUGE: patients.filter(p => p.statut === 'ROUGE').length, JAUNE: patients.filter(p => p.statut === 'JAUNE').length, VERT: patients.filter(p => p.statut === 'VERT').length, NOUVEAU: patients.filter(p => p.statut === 'NOUVEAU').length }), [patients]);
   const avgAdherence = useMemo(() => { if (!patients.length) return 0; return Math.round(patients.reduce((s, p) => s + (p.adherence ?? 0), 0) / patients.length); }, [patients]);
   const rdvCeSemaine = useMemo(() => patients.filter(p => isThisWeek(p.prochaineVisite)).length, [patients]);
 
@@ -225,7 +225,7 @@ function DashboardView({ clinique }) {
         {!loading && !error && (
           <div className="toolbar">
             <div className="search-box"><IconSearch /><input className="search-input" placeholder="Rechercher un patient, diagnostic, orthotiste..." value={search} onChange={e => setSearch(e.target.value)} /></div>
-            <div className="filter-pills">{[FILTER_ALL, 'ROUGE', 'JAUNE', 'VERT'].map(s => <button key={s} onClick={() => setFilterStatut(s)} className={`pill${filterStatut === s ? ' pill--active' : ''}`} style={filterStatut === s && s !== FILTER_ALL ? { background: STATUTS[s].bg, color: STATUTS[s].color, borderColor: STATUTS[s].dot } : {}}>{s === FILTER_ALL ? 'Tous' : STATUTS[s].label}<span className="pill-count">{s === FILTER_ALL ? patients.length : counts[s]}</span></button>)}</div>
+            <div className="filter-pills">{[FILTER_ALL, 'ROUGE', 'JAUNE', 'VERT', 'NOUVEAU'].map(s => <button key={s} onClick={() => setFilterStatut(s)} className={`pill${filterStatut === s ? ' pill--active' : ''}`} style={filterStatut === s && s !== FILTER_ALL ? { background: STATUTS[s].bg, color: STATUTS[s].color, borderColor: STATUTS[s].dot } : {}}>{s === FILTER_ALL ? 'Tous' : STATUTS[s].label}<span className="pill-count">{s === FILTER_ALL ? patients.length : counts[s]}</span></button>)}</div>
           </div>
         )}
         <div className="table-wrap">
