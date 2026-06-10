@@ -440,7 +440,7 @@ function DashboardView({ clinique }) {
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const clinique = params.get('clinique');
-  const view = params.get('fview');
+  const view = params.get('view');
 
   if (view === 'intake')    return <IntakePage clinique={clinique} />;
   if (view === 'pipeline')  return <PipelineView />;
