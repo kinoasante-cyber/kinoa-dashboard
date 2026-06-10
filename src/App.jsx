@@ -106,9 +106,8 @@ function KanbanCard({ patient, onMove }) {
     onMove(patient, newStage); // optimistic UI immédiat
 
     try {
-      await fetch(GAS_URL, {
+      await fetch('/api/gas', {
         method:  'POST',
-        mode:    'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token:           GAS_TOKEN,
