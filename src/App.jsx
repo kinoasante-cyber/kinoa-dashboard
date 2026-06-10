@@ -68,13 +68,13 @@ function Sidebar({ clinique, activeView, rougeCount = 0 }) {
 
 // ── Colonnes Kanban ───────────────────────────────────────────────────────────
 const PIPELINE_COLS = [
-  { key: 'nouveau_lead',   label: 'Nouveau lead',    color: '#888780', bg: '#F1EFE8' },
-  { key: 'intake_recu',    label: 'Intake reçu',     color: '#185FA5', bg: '#E6F1FB' },
-  { key: 'bilan_planifie', label: 'Bilan planifié',  color: '#BA7517', bg: '#FAEEDA' },
-  { key: 'plan_envoye',    label: 'Plan envoyé',     color: '#0F6E56', bg: '#E1F5EE' },
-  { key: 'actif',          label: 'Actif S1–12',     color: '#3B6D11', bg: '#EAF3DE' },
-  { key: 'suivi_post',     label: 'Suivi post-S12',  color: '#534AB7', bg: '#EEEDFE' },
-  { key: 'archive',        label: 'Archivé',         color: '#5F5E5A', bg: '#F1EFE8' },
+  { key: 'Nouveau lead',   label: 'Nouveau lead',    color: '#888780', bg: '#F1EFE8' },
+  { key: 'Intake reçu',    label: 'Intake reçu',     color: '#185FA5', bg: '#E6F1FB' },
+  { key: 'Bilan planifié', label: 'Bilan planifié',  color: '#BA7517', bg: '#FAEEDA' },
+  { key: 'Plan envoyé',    label: 'Plan envoyé',     color: '#0F6E56', bg: '#E1F5EE' },
+  { key: 'Actif S1–12',    label: 'Actif S1–12',     color: '#3B6D11', bg: '#EAF3DE' },
+  { key: 'Suivi post-S12', label: 'Suivi post-S12',  color: '#534AB7', bg: '#EEEDFE' },
+  { key: 'Archivé',        label: 'Archivé',         color: '#5F5E5A', bg: '#F1EFE8' },
 ];
 
 const STATUT_COLORS = {
@@ -85,9 +85,8 @@ const STATUT_COLORS = {
 
 function getPipelineStage(patient) {
   if (patient.statut_pipeline) return patient.statut_pipeline;
-  if (patient.source === 'intake_form') return 'intake_recu';
-  if (patient.statut_suivi === 'actif' || patient.statut === 'VERT' || patient.statut === 'JAUNE' || patient.statut === 'ROUGE') return 'actif';
-  return 'nouveau_lead';
+  if (patient.source === 'intake_form') return 'Intake reçu';
+  return 'Actif S1–12';
 }
 
 // ── ÉTAPE 3 : KanbanCard avec persistance ─────────────────────────────────────
@@ -441,7 +440,7 @@ function DashboardView({ clinique }) {
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const clinique = params.get('clinique');
-  const view = params.get('view');
+  const view = params.get('fview');
 
   if (view === 'intake')    return <IntakePage clinique={clinique} />;
   if (view === 'pipeline')  return <PipelineView />;
