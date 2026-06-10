@@ -26,11 +26,175 @@ function IconRefresh() { return <svg viewBox="0 0 24 24" fill="none" stroke="cur
 function IconBuilding() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>; }
 function IconCopy() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>; }
 function IconClipboard() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>; }
+function IconKanban() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22"><rect x="3" y="3" width="5" height="11" rx="1"/><rect x="10" y="3" width="5" height="7" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>; }
 
 function SkeletonCard() { return <div className="stat-card skeleton-card"><div className="skeleton skeleton-icon" /><div style={{ flex: 1 }}><div className="skeleton" style={{ height: 28, width: '60%', borderRadius: 6, marginBottom: 8 }} /><div className="skeleton" style={{ height: 12, width: '80%', borderRadius: 4 }} /></div></div>; }
 function SkeletonRow() { return <tr className="skeleton-row">{[140,90,150,50,180,110,70,110,70,80].map((w,i) => <td key={i}><div className="skeleton" style={{ height: 14, width: w, borderRadius: 4 }} /></td>)}</tr>; }
 function ErrorPanel({ message, onRetry }) { return <div className="error-panel"><div className="error-icon"><IconAlert /></div><h3 className="error-title">Impossible de charger les donnees</h3><p className="error-msg">{message}</p><button className="retry-btn" onClick={onRetry}><IconRefresh /> Reessayer</button></div>; }
 
+// ── Sidebar partagée ──────────────────────────────────────────────────────────
+function Sidebar({ clinique, activeView, rougeCount = 0 }) {
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        <div className="logo-mark">K</div>
+        <div><p className="logo-name">Kinoa</p><p className="logo-clinic">{clinique ?? 'Toutes'}</p></div>
+      </div>
+      <nav className="sidebar-nav">
+        {clinique && (
+          <a href="/?view=cliniques" className="nav-item nav-item--back">← Toutes les cliniques</a>
+        )}
+        <a href="/" className={`nav-item${activeView === 'patients' ? ' nav-item--active' : ''}`}><IconUsers /> Patients</a>
+        <a href="/?view=cliniques" className={`nav-item${activeView === 'cliniques' ? ' nav-item--active' : ''}`}><IconBuilding /> Cliniques</a>
+        <a href="/?view=pipeline" className={`nav-item${activeView === 'pipeline' ? ' nav-item--active' : ''}`}><IconKanban /> Pipeline</a>
+        <a href="#" className="nav-item"><IconCalendar /> Agenda</a>
+        <a href="#" className="nav-item"><IconChart /> Rapports</a>
+        <a href="#" className="nav-item">
+          <IconAlert /> Alertes
+          {rougeCount > 0 && <span className="nav-badge">{rougeCount}</span>}
+        </a>
+      </nav>
+      <div className="sidebar-footer">
+        <div className="sidebar-avatar">JC</div>
+        <div><p className="sidebar-user">Julien Cote</p><p className="sidebar-role">Orthotiste</p></div>
+      </div>
+    </aside>
+  );
+}
+
+// ── Colonnes Kanban ───────────────────────────────────────────────────────────
+const PIPELINE_COLS = [
+  { key: 'nouveau_lead',   label: 'Nouveau lead',    color: '#888780', bg: '#F1EFE8' },
+  { key: 'intake_recu',    label: 'Intake reçu',     color: '#185FA5', bg: '#E6F1FB' },
+  { key: 'bilan_planifie', label: 'Bilan planifié',  color: '#BA7517', bg: '#FAEEDA' },
+  { key: 'plan_envoye',    label: 'Plan envoyé',     color: '#0F6E56', bg: '#E1F5EE' },
+  { key: 'actif',          label: 'Actif S1–12',     color: '#3B6D11', bg: '#EAF3DE' },
+  { key: 'suivi_post',     label: 'Suivi post-S12',  color: '#534AB7', bg: '#EEEDFE' },
+  { key: 'archive',        label: 'Archivé',         color: '#5F5E5A', bg: '#F1EFE8' },
+];
+
+const STATUT_COLORS = {
+  ROUGE: { bg: '#FCEBEB', color: '#A32D2D' },
+  JAUNE: { bg: '#FAEEDA', color: '#854F0B' },
+  VERT:  { bg: '#EAF3DE', color: '#3B6D11' },
+};
+
+// Détermine la colonne pipeline à partir des données patient
+function getPipelineStage(patient) {
+  if (patient.statut_pipeline) return patient.statut_pipeline;
+  // Fallback logique : si source = intake_form → intake_recu, sinon nouveau_lead
+  if (patient.source === 'intake_form') return 'intake_recu';
+  if (patient.statut_suivi === 'actif' || patient.statut === 'VERT' || patient.statut === 'JAUNE' || patient.statut === 'ROUGE') return 'actif';
+  return 'nouveau_lead';
+}
+
+function KanbanCard({ patient, onMove }) {
+  const statut = patient.statut ?? '';
+  const sc = STATUT_COLORS[statut] ?? null;
+  const isB2B = !!(patient.nom_clinique || patient.clinique);
+  const source = isB2B ? 'B2B' : 'B2C';
+  const sourceColor = isB2B
+    ? { bg: '#E6F1FB', color: '#185FA5' }
+    : { bg: '#EAF3DE', color: '#3B6D11' };
+
+  return (
+    <div className="kb-card">
+      <p className="kb-card-name">{patient.prenom} {patient.nom}</p>
+      <p className="kb-card-sub">
+        {patient.nom_clinique ?? patient.clinique ?? 'Site kinoa.ca'}
+        {patient.semaine ? ` · S${patient.semaine}` : ''}
+      </p>
+      <div className="kb-card-tags">
+        <span className="kb-tag" style={{ background: sourceColor.bg, color: sourceColor.color }}>{source}</span>
+        {sc && <span className="kb-tag" style={{ background: sc.bg, color: sc.color }}>{statut}</span>}
+      </div>
+      <select
+        className="kb-move-select"
+        value={getPipelineStage(patient)}
+        onChange={e => onMove(patient, e.target.value)}
+        onClick={e => e.stopPropagation()}
+      >
+        {PIPELINE_COLS.map(c => (
+          <option key={c.key} value={c.key}>{c.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function PipelineView() {
+  const { patients, loading, error, refetch } = useAllPatients();
+  const [stages, setStages] = useState({});
+
+  // Initialise les stages depuis les données au premier chargement
+  const stageMap = useMemo(() => {
+    const map = {};
+    PIPELINE_COLS.forEach(c => { map[c.key] = []; });
+    patients.forEach(p => {
+      const stage = stages[p.id_patient] ?? getPipelineStage(p);
+      if (map[stage]) map[stage].push(p);
+      else map['nouveau_lead'].push(p);
+    });
+    return map;
+  }, [patients, stages]);
+
+  function handleMove(patient, newStage) {
+    setStages(prev => ({ ...prev, [patient.id_patient]: newStage }));
+  }
+
+  return (
+    <div className="layout">
+      <Sidebar activeView="pipeline" />
+      <main className="main">
+        <header className="page-header">
+          <div>
+            <h1 className="page-title">Pipeline patients</h1>
+            <p className="page-sub">
+              Suivi du parcours · {today.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+          {!loading && <button className="refresh-btn" onClick={refetch} title="Actualiser"><IconRefresh /></button>}
+        </header>
+
+        {error && <ErrorPanel message={error} onRetry={refetch} />}
+
+        {loading && <p style={{ color: 'var(--muted)', padding: '2rem' }}>Chargement...</p>}
+
+        {!loading && !error && (
+          <div className="pipeline-board">
+            {PIPELINE_COLS.map(col => {
+              const colPatients = stageMap[col.key] ?? [];
+              return (
+                <div key={col.key} className="pipeline-col" style={{ borderTop: `3px solid ${col.color}` }}>
+                  <div className="pipeline-col-header">
+                    <span className="pipeline-col-label">{col.label}</span>
+                    <span className="pipeline-col-count" style={{ background: col.bg, color: col.color }}>
+                      {colPatients.length}
+                    </span>
+                  </div>
+                  <div className="pipeline-col-body">
+                    {colPatients.length === 0 && (
+                      <p className="pipeline-empty">—</p>
+                    )}
+                    {colPatients.map(p => (
+                      <KanbanCard key={p.id_patient} patient={p} onMove={handleMove} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <p className="pipeline-note">
+          ⚠ Les déplacements de cartes sont temporaires (session en cours). Pour persister les stades, ajouter une colonne <code>statut_pipeline</code> dans <code>Patients_Ortheses</code>.
+        </p>
+      </main>
+    </div>
+  );
+}
+
+// ── Clinic stat card ──────────────────────────────────────────────────────────
 function ClinicStatCard({ nom, patients }) {
   const [copied, setCopied] = useState(false);
   const [intakeCopied, setIntakeCopied] = useState(false);
@@ -43,18 +207,11 @@ function ClinicStatCard({ nom, patients }) {
 
   function handleCopy(e) {
     e.stopPropagation();
-    navigator.clipboard.writeText(fullUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(fullUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   }
-
   function handleIntakeCopy(e) {
     e.stopPropagation();
-    navigator.clipboard.writeText(intakeUrl).then(() => {
-      setIntakeCopied(true);
-      setTimeout(() => setIntakeCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(intakeUrl).then(() => { setIntakeCopied(true); setTimeout(() => setIntakeCopied(false), 2000); });
   }
 
   return (
@@ -90,6 +247,7 @@ function ClinicStatCard({ nom, patients }) {
   );
 }
 
+// ── Cliniques view ────────────────────────────────────────────────────────────
 function CliniquesView() {
   const { cliniques, loading: clLoading, error: clError, refetch: clRefetch } = useCliniques();
   const { patients, loading: pLoading, error: pError, refetch: pRefetch } = useAllPatients();
@@ -112,20 +270,7 @@ function CliniquesView() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-mark">K</div>
-          <div><p className="logo-name">Kinoa</p><p className="logo-clinic">Dashboard</p></div>
-        </div>
-        <nav className="sidebar-nav">
-          <a href="/" className="nav-item"><IconUsers /> Patients</a>
-          <a href="/?view=cliniques" className="nav-item nav-item--active"><IconBuilding /> Cliniques</a>
-        </nav>
-        <div className="sidebar-footer">
-          <div className="sidebar-avatar">K</div>
-          <div><p className="sidebar-user">Kinoa Sante</p><p className="sidebar-role">Admin</p></div>
-        </div>
-      </aside>
+      <Sidebar activeView="cliniques" />
       <main className="main">
         <header className="page-header">
           <div>
@@ -149,17 +294,7 @@ function CliniquesView() {
   );
 }
 
-export default function App() {
-  const params = new URLSearchParams(window.location.search);
-  const clinique = params.get('clinique');
-  const view = params.get('view');
-
-  if (view === 'intake') return <IntakePage clinique={clinique} />;
-  if (clinique) return <DashboardView clinique={clinique} />;
-  if (view === 'cliniques') return <CliniquesView />;
-  return <DashboardView clinique={null} />;
-}
-
+// ── Dashboard view ────────────────────────────────────────────────────────────
 function DashboardView({ clinique }) {
   const { patients, loading, error, refetch } = usePatients(clinique);
   const [search, setSearch] = useState('');
@@ -168,42 +303,50 @@ function DashboardView({ clinique }) {
   const [sortKey, setSortKey] = useState('nom');
   const [sortDir, setSortDir] = useState(1);
 
-  const counts = useMemo(() => ({ ROUGE: patients.filter(p => p.statut === 'ROUGE').length, JAUNE: patients.filter(p => p.statut === 'JAUNE').length, VERT: patients.filter(p => p.statut === 'VERT').length, NOUVEAU: patients.filter(p => p.statut === 'NOUVEAU').length }), [patients]);
-  const avgAdherence = useMemo(() => { if (!patients.length) return 0; return Math.round(patients.reduce((s, p) => s + (p.adherence ?? 0), 0) / patients.length); }, [patients]);
+  const counts = useMemo(() => ({
+    ROUGE: patients.filter(p => p.statut === 'ROUGE').length,
+    JAUNE: patients.filter(p => p.statut === 'JAUNE').length,
+    VERT:  patients.filter(p => p.statut === 'VERT').length,
+    NOUVEAU: patients.filter(p => p.statut === 'NOUVEAU').length,
+  }), [patients]);
+
+  const avgAdherence = useMemo(() => {
+    if (!patients.length) return 0;
+    return Math.round(patients.reduce((s, p) => s + (p.adherence ?? 0), 0) / patients.length);
+  }, [patients]);
+
   const rdvCeSemaine = useMemo(() => patients.filter(p => isThisWeek(p.prochaineVisite)).length, [patients]);
 
   const filtered = useMemo(() => {
     let list = patients;
     if (filterStatut !== FILTER_ALL) list = list.filter(p => p.statut === filterStatut);
-    if (search.trim()) { const q = search.toLowerCase(); list = list.filter(p => `${p.prenom} ${p.nom}`.toLowerCase().includes(q) || (p.diagnostic ?? '').toLowerCase().includes(q) || (p.orthotiste ?? '').toLowerCase().includes(q)); }
-    return [...list].sort((a, b) => { const av = a[sortKey], bv = b[sortKey]; if (typeof av === 'string') return sortDir * av.localeCompare(bv, 'fr'); return sortDir * (av - bv); });
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(p =>
+        `${p.prenom} ${p.nom}`.toLowerCase().includes(q) ||
+        (p.diagnostic ?? '').toLowerCase().includes(q) ||
+        (p.orthotiste ?? '').toLowerCase().includes(q)
+      );
+    }
+    return [...list].sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      if (typeof av === 'string') return sortDir * av.localeCompare(bv, 'fr');
+      return sortDir * (av - bv);
+    });
   }, [patients, search, filterStatut, sortKey, sortDir]);
 
-  function handleSort(key) { if (key === sortKey) setSortDir(d => -d); else { setSortKey(key); setSortDir(1); } }
-  function SortTh({ label, k }) { const active = sortKey === k; return <th onClick={() => handleSort(k)} className={`th-sortable${active ? ' th-active' : ''}`}>{label} <span className="sort-arrow">{active ? (sortDir === 1 ? '↑' : '↓') : '↕'}</span></th>; }
+  function handleSort(key) {
+    if (key === sortKey) setSortDir(d => -d);
+    else { setSortKey(key); setSortDir(1); }
+  }
+  function SortTh({ label, k }) {
+    const active = sortKey === k;
+    return <th onClick={() => handleSort(k)} className={`th-sortable${active ? ' th-active' : ''}`}>{label} <span className="sort-arrow">{active ? (sortDir === 1 ? '↑' : '↓') : '↕'}</span></th>;
+  }
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-mark">K</div>
-          <div><p className="logo-name">Kinoa</p><p className="logo-clinic">{clinique ?? 'Toutes'}</p></div>
-        </div>
-        <nav className="sidebar-nav">
-          {clinique && (
-            <a href="/?view=cliniques" className="nav-item nav-item--back">← Toutes les cliniques</a>
-          )}
-          <a href="/" className="nav-item nav-item--active"><IconUsers /> Patients</a>
-          <a href="/?view=cliniques" className="nav-item"><IconBuilding /> Cliniques</a>
-          <a href="#" className="nav-item"><IconCalendar /> Agenda</a>
-          <a href="#" className="nav-item"><IconChart /> Rapports</a>
-          <a href="#" className="nav-item"><IconAlert /> Alertes{counts.ROUGE > 0 && <span className="nav-badge">{counts.ROUGE}</span>}</a>
-        </nav>
-        <div className="sidebar-footer">
-          <div className="sidebar-avatar">JC</div>
-          <div><p className="sidebar-user">Julien Cote</p><p className="sidebar-role">Orthotiste</p></div>
-        </div>
-      </aside>
+      <Sidebar clinique={clinique} activeView="patients" rougeCount={counts.ROUGE} />
       <main className="main">
         <header className="page-header">
           <div>
@@ -225,14 +368,40 @@ function DashboardView({ clinique }) {
         {!loading && !error && (
           <div className="toolbar">
             <div className="search-box"><IconSearch /><input className="search-input" placeholder="Rechercher un patient, diagnostic, orthotiste..." value={search} onChange={e => setSearch(e.target.value)} /></div>
-            <div className="filter-pills">{[FILTER_ALL, 'ROUGE', 'JAUNE', 'VERT', 'NOUVEAU'].map(s => <button key={s} onClick={() => setFilterStatut(s)} className={`pill${filterStatut === s ? ' pill--active' : ''}`} style={filterStatut === s && s !== FILTER_ALL ? { background: STATUTS[s].bg, color: STATUTS[s].color, borderColor: STATUTS[s].dot } : {}}>{s === FILTER_ALL ? 'Tous' : STATUTS[s].label}<span className="pill-count">{s === FILTER_ALL ? patients.length : counts[s]}</span></button>)}</div>
+            <div className="filter-pills">
+              {[FILTER_ALL, 'ROUGE', 'JAUNE', 'VERT', 'NOUVEAU'].map(s => (
+                <button key={s} onClick={() => setFilterStatut(s)} className={`pill${filterStatut === s ? ' pill--active' : ''}`}
+                  style={filterStatut === s && s !== FILTER_ALL ? { background: STATUTS[s].bg, color: STATUTS[s].color, borderColor: STATUTS[s].dot } : {}}>
+                  {s === FILTER_ALL ? 'Tous' : STATUTS[s].label}
+                  <span className="pill-count">{s === FILTER_ALL ? patients.length : counts[s]}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         <div className="table-wrap">
           {error ? <ErrorPanel message={error} onRetry={refetch} /> : (
             <table className="patient-table">
-              <thead><tr><SortTh label="Patient" k="nom" /><th>Telephone</th><th>Email</th><SortTh label="Age" k="ddn" /><th>Diagnostic</th><th>Orthotiste</th><SortTh label="Statut" k="statut" /><SortTh label="Adherence" k="adherence" /><SortTh label="Derniere visite" k="derniereVisite" /><SortTh label="Prochain RDV" k="prochaineVisite" /></tr></thead>
-              <tbody>{loading ? Array.from({ length: 7 }, (_, i) => <SkeletonRow key={i} />) : filtered.length === 0 ? <tr><td colSpan="10" className="empty-state">Aucun patient trouve.</td></tr> : filtered.map(p => <tr key={p.id_patient} className="patient-row" style={{ cursor: 'pointer' }} onClick={() => setSelected(p)}><PatientRow patient={p} /></tr>)}</tbody>
+              <thead>
+                <tr>
+                  <SortTh label="Patient" k="nom" /><th>Telephone</th><th>Email</th>
+                  <SortTh label="Age" k="ddn" /><th>Diagnostic</th><th>Orthotiste</th>
+                  <SortTh label="Statut" k="statut" /><SortTh label="Adherence" k="adherence" />
+                  <SortTh label="Derniere visite" k="derniereVisite" /><SortTh label="Prochain RDV" k="prochaineVisite" />
+                </tr>
+              </thead>
+              <tbody>
+                {loading
+                  ? Array.from({ length: 7 }, (_, i) => <SkeletonRow key={i} />)
+                  : filtered.length === 0
+                    ? <tr><td colSpan="10" className="empty-state">Aucun patient trouve.</td></tr>
+                    : filtered.map(p => (
+                        <tr key={p.id_patient} className="patient-row" style={{ cursor: 'pointer' }} onClick={() => setSelected(p)}>
+                          <PatientRow patient={p} />
+                        </tr>
+                      ))
+                }
+              </tbody>
             </table>
           )}
         </div>
@@ -241,4 +410,17 @@ function DashboardView({ clinique }) {
       <PatientModal patient={selected} onClose={() => setSelected(null)} />
     </div>
   );
+}
+
+// ── Routing principal ─────────────────────────────────────────────────────────
+export default function App() {
+  const params = new URLSearchParams(window.location.search);
+  const clinique = params.get('clinique');
+  const view = params.get('view');
+
+  if (view === 'intake')    return <IntakePage clinique={clinique} />;
+  if (view === 'pipeline')  return <PipelineView />;
+  if (clinique)             return <DashboardView clinique={clinique} />;
+  if (view === 'cliniques') return <CliniquesView />;
+  return <DashboardView clinique={null} />;
 }
