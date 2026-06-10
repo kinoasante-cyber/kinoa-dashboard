@@ -1,5 +1,5 @@
 ﻿export default async function handler(req, res) {
-  const GAS_URL = process.env.VITE_GAS_URL || 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSFMEsvyPvQKZxuHVO0BazoISllCtaNvqbjh40vTFMKXV41rDQ/exec';
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSFMEsvyPvQKZxuHVO0BazoISllCtaNvqbjh40vTFMKXV41rDQ/exec';
 
   try {
     if (req.method === 'POST') {
