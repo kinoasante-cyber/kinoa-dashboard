@@ -9,6 +9,10 @@ import PatientModal from './components/PatientModal';
 import IntakePage from './pages/IntakePage';
 import './App.css';
 
+// ── Config Apps Script ────────────────────────────────────────────────────────
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycbzUIUfcbiXw6NRtNkUiVG58Xge9Vt2gwwn4vqur0juE3J1RTSjBOMi7c-Bel5Uyjuk/exec';
+const GAS_TOKEN = 'KNS_xK9m2pQ7vR4wL8';
+
 const FILTER_ALL = 'TOUS';
 const today = new Date();
 
@@ -32,7 +36,7 @@ function SkeletonCard() { return <div className="stat-card skeleton-card"><div c
 function SkeletonRow() { return <tr className="skeleton-row">{[140,90,150,50,180,110,70,110,70,80].map((w,i) => <td key={i}><div className="skeleton" style={{ height: 14, width: w, borderRadius: 4 }} /></td>)}</tr>; }
 function ErrorPanel({ message, onRetry }) { return <div className="error-panel"><div className="error-icon"><IconAlert /></div><h3 className="error-title">Impossible de charger les donnees</h3><p className="error-msg">{message}</p><button className="retry-btn" onClick={onRetry}><IconRefresh /> Reessayer</button></div>; }
 
-// ── Sidebar partagée ──────────────────────────────────────────────────────────
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 function Sidebar({ clinique, activeView, rougeCount = 0 }) {
   return (
     <aside className="sidebar">
@@ -79,16 +83,16 @@ const STATUT_COLORS = {
   VERT:  { bg: '#EAF3DE', color: '#3B6D11' },
 };
 
-// Détermine la colonne pipeline à partir des données patient
 function getPipelineStage(patient) {
   if (patient.statut_pipeline) return patient.statut_pipeline;
-  // Fallback logique : si source = intake_form → intake_recu, sinon nouveau_lead
   if (patient.source === 'intake_form') return 'intake_recu';
   if (patient.statut_suivi === 'actif' || patient.statut === 'VERT' || patient.statut === 'JAUNE' || patient.statut === 'ROUGE') return 'actif';
   return 'nouveau_lead';
 }
 
+// ── ÉTAPE 3 : KanbanCard avec persistance ─────────────────────────────────────
 function KanbanCard({ patient, onMove }) {
+  const [saving, setSaving] = useState(false);
   const statut = patient.statut ?? '';
   const sc = STATUT_COLORS[statut] ?? null;
   const isB2B = !!(patient.nom_clinique || patient.clinique);
@@ -97,8 +101,32 @@ function KanbanCard({ patient, onMove }) {
     ? { bg: '#E6F1FB', color: '#185FA5' }
     : { bg: '#EAF3DE', color: '#3B6D11' };
 
+  async function handleChange(e) {
+    const newStage = e.target.value;
+    setSaving(true);
+    onMove(patient, newStage); // optimistic UI immédiat
+
+    try {
+      await fetch(GAS_URL, {
+        method:  'POST',
+        mode:    'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token:           GAS_TOKEN,
+          action:          'set_statut_pipeline',
+          id_patient:      patient.id_patient,
+          statut_pipeline: newStage,
+        }),
+      });
+    } catch (err) {
+      console.error('Pipeline save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <div className="kb-card">
+    <div className={`kb-card${saving ? ' kb-card--saving' : ''}`}>
       <p className="kb-card-name">{patient.prenom} {patient.nom}</p>
       <p className="kb-card-sub">
         {patient.nom_clinique ?? patient.clinique ?? 'Site kinoa.ca'}
@@ -107,12 +135,14 @@ function KanbanCard({ patient, onMove }) {
       <div className="kb-card-tags">
         <span className="kb-tag" style={{ background: sourceColor.bg, color: sourceColor.color }}>{source}</span>
         {sc && <span className="kb-tag" style={{ background: sc.bg, color: sc.color }}>{statut}</span>}
+        {saving && <span className="kb-tag" style={{ background: '#F1EFE8', color: '#888780' }}>⏳</span>}
       </div>
       <select
         className="kb-move-select"
         value={getPipelineStage(patient)}
-        onChange={e => onMove(patient, e.target.value)}
+        onChange={handleChange}
         onClick={e => e.stopPropagation()}
+        disabled={saving}
       >
         {PIPELINE_COLS.map(c => (
           <option key={c.key} value={c.key}>{c.label}</option>
@@ -122,11 +152,11 @@ function KanbanCard({ patient, onMove }) {
   );
 }
 
+// ── PipelineView ──────────────────────────────────────────────────────────────
 function PipelineView() {
-  const { patients, loading, error, refetch } = useAllPatients();
+  const { patients, loading, error, refetch, updateStatutPipeline } = useAllPatients();
   const [stages, setStages] = useState({});
 
-  // Initialise les stages depuis les données au premier chargement
   const stageMap = useMemo(() => {
     const map = {};
     PIPELINE_COLS.forEach(c => { map[c.key] = []; });
@@ -138,8 +168,10 @@ function PipelineView() {
     return map;
   }, [patients, stages]);
 
+  // ÉTAPE 3 : handleMove met à jour UI locale + déclenche la sauvegarde via KanbanCard
   function handleMove(patient, newStage) {
     setStages(prev => ({ ...prev, [patient.id_patient]: newStage }));
+    updateStatutPipeline(patient.id_patient, newStage);
   }
 
   return (
@@ -157,7 +189,6 @@ function PipelineView() {
         </header>
 
         {error && <ErrorPanel message={error} onRetry={refetch} />}
-
         {loading && <p style={{ color: 'var(--muted)', padding: '2rem' }}>Chargement...</p>}
 
         {!loading && !error && (
@@ -173,9 +204,7 @@ function PipelineView() {
                     </span>
                   </div>
                   <div className="pipeline-col-body">
-                    {colPatients.length === 0 && (
-                      <p className="pipeline-empty">—</p>
-                    )}
+                    {colPatients.length === 0 && <p className="pipeline-empty">—</p>}
                     {colPatients.map(p => (
                       <KanbanCard key={p.id_patient} patient={p} onMove={handleMove} />
                     ))}
@@ -185,24 +214,20 @@ function PipelineView() {
             })}
           </div>
         )}
-
-        <p className="pipeline-note">
-          ⚠ Les déplacements de cartes sont temporaires (session en cours). Pour persister les stades, ajouter une colonne <code>statut_pipeline</code> dans <code>Patients_Ortheses</code>.
-        </p>
       </main>
     </div>
   );
 }
 
-// ── Clinic stat card ──────────────────────────────────────────────────────────
+// ── ClinicStatCard ────────────────────────────────────────────────────────────
 function ClinicStatCard({ nom, patients }) {
   const [copied, setCopied] = useState(false);
   const [intakeCopied, setIntakeCopied] = useState(false);
   const rouge = patients.filter(p => p.statut === 'ROUGE').length;
   const jaune = patients.filter(p => p.statut === 'JAUNE').length;
   const vert  = patients.filter(p => p.statut === 'VERT').length;
-  const navUrl = `/?clinique=${encodeURIComponent(nom)}`;
-  const fullUrl = `https://kinoa-dashboard.vercel.app/?clinique=${encodeURIComponent(nom)}`;
+  const navUrl    = `/?clinique=${encodeURIComponent(nom)}`;
+  const fullUrl   = `https://kinoa-dashboard.vercel.app/?clinique=${encodeURIComponent(nom)}`;
   const intakeUrl = `https://kinoa-dashboard.vercel.app/?view=intake&clinique=${encodeURIComponent(nom)}`;
 
   function handleCopy(e) {
@@ -247,7 +272,7 @@ function ClinicStatCard({ nom, patients }) {
   );
 }
 
-// ── Cliniques view ────────────────────────────────────────────────────────────
+// ── CliniquesView ─────────────────────────────────────────────────────────────
 function CliniquesView() {
   const { cliniques, loading: clLoading, error: clError, refetch: clRefetch } = useCliniques();
   const { patients, loading: pLoading, error: pError, refetch: pRefetch } = useAllPatients();
@@ -294,7 +319,7 @@ function CliniquesView() {
   );
 }
 
-// ── Dashboard view ────────────────────────────────────────────────────────────
+// ── DashboardView ─────────────────────────────────────────────────────────────
 function DashboardView({ clinique }) {
   const { patients, loading, error, refetch } = usePatients(clinique);
   const [search, setSearch] = useState('');
@@ -304,9 +329,9 @@ function DashboardView({ clinique }) {
   const [sortDir, setSortDir] = useState(1);
 
   const counts = useMemo(() => ({
-    ROUGE: patients.filter(p => p.statut === 'ROUGE').length,
-    JAUNE: patients.filter(p => p.statut === 'JAUNE').length,
-    VERT:  patients.filter(p => p.statut === 'VERT').length,
+    ROUGE:   patients.filter(p => p.statut === 'ROUGE').length,
+    JAUNE:   patients.filter(p => p.statut === 'JAUNE').length,
+    VERT:    patients.filter(p => p.statut === 'VERT').length,
     NOUVEAU: patients.filter(p => p.statut === 'NOUVEAU').length,
   }), [patients]);
 
@@ -412,7 +437,7 @@ function DashboardView({ clinique }) {
   );
 }
 
-// ── Routing principal ─────────────────────────────────────────────────────────
+// ── Routing ───────────────────────────────────────────────────────────────────
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const clinique = params.get('clinique');

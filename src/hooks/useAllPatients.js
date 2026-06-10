@@ -27,8 +27,9 @@ export function useAllPatients() {
       if (data.error) throw new Error(data.error);
       setPatients(list.map(p => ({
         ...p,
-        statut:      p.statut      ?? p.statut_suivi,
-        date_intake: p.date_intake ?? p.created_at,
+        statut:          p.statut         ?? p.statut_suivi,
+        date_intake:     p.date_intake    ?? p.created_at,
+        statut_pipeline: p.statut_pipeline ?? '',
       })));
     } catch (err) {
       setError(err.message || 'Impossible de joindre le serveur.');
@@ -39,5 +40,14 @@ export function useAllPatients() {
 
   useEffect(() => { fetchPatients(); }, [fetchPatients]);
 
-  return { patients, loading, error, refetch: fetchPatients };
+  function updateStatutPipeline(id_patient, newStatut) {
+    setPatients(prev =>
+      prev.map(p => p.id_patient === id_patient
+        ? { ...p, statut_pipeline: newStatut }
+        : p
+      )
+    );
+  }
+
+  return { patients, loading, error, refetch: fetchPatients, updateStatutPipeline };
 }
