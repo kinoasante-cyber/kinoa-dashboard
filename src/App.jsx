@@ -55,8 +55,8 @@ function Sidebar({ clinique, activeView, rougeCount = 0 }) {
         </a>
       </nav>
       <div className="sidebar-footer">
-        <div className="sidebar-avatar">JC</div>
-        <div><p className="sidebar-user">Julien Cote</p><p className="sidebar-role">Orthotiste</p></div>
+        <div className="sidebar-avatar">K</div>
+        <div><p className="sidebar-user">Kinoa</p><p className="sidebar-role">Admin</p></div>
       </div>
     </aside>
   );
