@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './IntakePage.css';
 
 const INTAKE_URL = 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSFMEsvyPvQKZxuHVO0BazoISllCtaNvqbjh40vTFMKXV41rDQ/exec';
-const TOKEN = import.meta.env.VITE_API_TOKEN;
+const TOKEN = 'KNS_xK9m2pQ7vR4wL8';
 
-const CLINICIENS = ['Dr. Martin', 'Dr. Tremblay', 'Dr. Bouchard'];
-const TYPES_ORTHESE = ['Genou Valgus', 'Genou Varus', 'Cheville', 'Autre'];
+const CLINICIENS_BY_CLINIC = {
+  'OrtheseGo': ['Patrick B.', 'Patrick G.'],
+  'MonOrthesiste': ['Alex Boisvert'],
+};
+const TYPES_ORTHESE = ['OA Médial', 'OA Latéral', 'Cheville', 'Autre'];
 const COTES = ['Gauche', 'Droit', 'Bilatéral'];
 
 const EMPTY_FORM = {
@@ -32,6 +35,25 @@ export default function IntakePage({ clinique }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [cliniciens, setCliniciens] = useState(() => CLINICIENS_BY_CLINIC[clinique] ?? []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCliniciens() {
+      try {
+        const params = new URLSearchParams({ action: 'getClinicians', clinique: clinique ?? '', token: TOKEN });
+        const res = await fetch(`${INTAKE_URL}?${params}`);
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.cliniciens)) throw new Error(data.error || 'Réponse invalide');
+        if (!cancelled) setCliniciens(data.cliniciens);
+      } catch {
+        if (!cancelled) setCliniciens(CLINICIENS_BY_CLINIC[clinique] ?? []);
+      }
+    }
+    loadCliniciens();
+    return () => { cancelled = true; };
+  }, [clinique]);
 
   function handleChange(field, value) {
     setForm(f => ({ ...f, [field]: value }));
@@ -116,8 +138,8 @@ export default function IntakePage({ clinique }) {
           <div className="intake-field">
             <label htmlFor="clinicien">Clinicien responsable *</label>
             <select id="clinicien" required value={form.clinicien} onChange={e => handleChange('clinicien', e.target.value)}>
-              <option value="" disabled>Sélectionnez un clinicien</option>
-              {CLINICIENS.map(c => <option key={c} value={c}>{c}</option>)}
+              <option value="" disabled>{cliniciens.length === 0 ? 'Aucun clinicien disponible' : 'Sélectionnez un clinicien'}</option>
+              {cliniciens.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
