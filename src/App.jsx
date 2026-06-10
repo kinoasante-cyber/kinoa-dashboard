@@ -10,7 +10,7 @@ import IntakePage from './pages/IntakePage';
 import './App.css';
 
 // ── Config Apps Script ────────────────────────────────────────────────────────
-const GAS_URL   = 'https://script.google.com/macros/s/AKfycbzUIUfcbiXw6NRtNkUiVG58Xge9Vt2gwwn4vqur0juE3J1RTSjBOMi7c-Bel5Uyjuk/exec';
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSFMEsvyPvQKZxuHVO0BazoISllCtaNvqbjh40vTFMKXV41rDQ/exec';
 const GAS_TOKEN = 'KNS_xK9m2pQ7vR4wL8';
 
 const FILTER_ALL = 'TOUS';
