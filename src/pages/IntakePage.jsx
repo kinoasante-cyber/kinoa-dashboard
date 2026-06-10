@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './IntakePage.css';
 
-const GAS_URL = import.meta.env.VITE_GAS_URL;
+const INTAKE_URL = 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSFMEsvyPvQKZxuHVO0BazoISllCtaNvqbjh40vTFMKXV41rDQ/exec';
 const TOKEN = import.meta.env.VITE_API_TOKEN;
 
 const CLINICIENS = ['Dr. Martin', 'Dr. Tremblay', 'Dr. Bouchard'];
@@ -42,7 +42,7 @@ export default function IntakePage({ clinique }) {
     setStatus('submitting');
     setErrorMsg('');
     try {
-      const res = await fetch(GAS_URL, {
+      const res = await fetch(INTAKE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ token: TOKEN, action: 'intake', clinique: clinique ?? '', ...form }),
