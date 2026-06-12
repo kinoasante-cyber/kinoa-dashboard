@@ -9,10 +9,6 @@ import PatientModal from './components/PatientModal';
 import IntakePage from './pages/IntakePage';
 import './App.css';
 
-// ── Config Apps Script ────────────────────────────────────────────────────────
-const GAS_URL   = 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSFMEsvyPvQKZxuHVO0BazoISllCtaNvqbjh40vTFMKXV41rDQ/exec';
-const GAS_TOKEN = 'KNS_xK9m2pQ7vR4wL8';
-
 const FILTER_ALL = 'TOUS';
 const today = new Date();
 
@@ -103,21 +99,8 @@ function KanbanCard({ patient, onMove }) {
   async function handleChange(e) {
     const newStage = e.target.value;
     setSaving(true);
-    onMove(patient, newStage); // optimistic UI immédiat
-
     try {
-      await fetch('/api/gas', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token:           GAS_TOKEN,
-          action:          'set_statut_pipeline',
-          id_patient:      patient.id_patient,
-          statut_pipeline: newStage,
-        }),
-      });
-    } catch (err) {
-      console.error('Pipeline save error:', err);
+      await onMove(patient, newStage);
     } finally {
       setSaving(false);
     }
@@ -169,7 +152,7 @@ function PipelineView() {
   // ÉTAPE 3 : handleMove met à jour UI locale + déclenche la sauvegarde via KanbanCard
   function handleMove(patient, newStage) {
     setStages(prev => ({ ...prev, [patient.id_patient]: newStage }));
-    updateStatutPipeline(patient.id_patient, newStage);
+    return updateStatutPipeline(patient, newStage);
   }
 
   return (

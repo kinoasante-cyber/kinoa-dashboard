@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const GAS_BASE = import.meta.env.VITE_GAS_URL;
+const TOKEN = import.meta.env.VITE_API_TOKEN;
 
-const params = new URLSearchParams({ token: import.meta.env.VITE_API_TOKEN });
+const params = new URLSearchParams({ token: TOKEN });
 
 const API_URL = import.meta.env.DEV
   ? `/api/gas?${params}`
@@ -40,13 +41,35 @@ export function useAllPatients() {
 
   useEffect(() => { fetchPatients(); }, [fetchPatients]);
 
-  function updateStatutPipeline(id_patient, newStatut) {
-    setPatients(prev =>
-      prev.map(p => p.id_patient === id_patient
-        ? { ...p, statut_pipeline: newStatut }
-        : p
-      )
-    );
+  async function updateStatutPipeline(patient, newStatut) {
+    const rowNumber = Number(patient.rowNumber);
+
+    try {
+      const res = await fetch('/api/gas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: TOKEN,
+          action: 'set_statut_pipeline',
+          rowNumber,
+          newStatut,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Erreur HTTP ${res.status} — ${res.statusText}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      // Mise à jour locale optimiste, une fois la persistance confirmée
+      setPatients(prev =>
+        prev.map(p => p.id_patient === patient.id_patient
+          ? { ...p, statut_pipeline: newStatut }
+          : p
+        )
+      );
+    } catch (err) {
+      console.error(`Erreur set_statut_pipeline (rowNumber=${rowNumber}, newStatut=${newStatut}):`, err);
+    }
   }
 
   return { patients, loading, error, refetch: fetchPatients, updateStatutPipeline };
