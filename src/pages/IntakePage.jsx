@@ -5,10 +5,10 @@ const INTAKE_URL = 'https://script.google.com/macros/s/AKfycbzNk_8hCbTpOqDTXTHSF
 const TOKEN = 'KNS_xK9m2pQ7vR4wL8';
 
 const CLINICIENS_BY_CLINIC = {
-  'OrtheseGo': ['Patrick B.', 'Patrick G.'],
+  'OrthèseGo': ['Patrick B.', 'Patrick G.'],
   'MonOrthesiste': ['Alex Boisvert'],
 };
-const TYPES_ORTHESE = ['OA Médial', 'OA Latéral', 'Cheville', 'Autre'];
+const TYPES_ORTHESE = ['OA Médial', 'OA Latéral', 'Plantaire', 'Autre'];
 const COTES = ['Gauche', 'Droit', 'Bilatéral'];
 
 const EMPTY_FORM = {
