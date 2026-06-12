@@ -18,7 +18,7 @@ export function useAllPatients() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(API_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error(`Erreur HTTP ${res.status} — ${res.statusText}`);
       const data = await res.json();
       const list = Array.isArray(data)
@@ -31,6 +31,7 @@ export function useAllPatients() {
         statut:          p.statut         ?? p.statut_suivi,
         date_intake:     p.date_intake    ?? p.created_at,
         statut_pipeline: p.statut_pipeline ?? '',
+        rowNumber:       p.rowNumber       ?? p._rowNumber,
       })));
     } catch (err) {
       setError(err.message || 'Impossible de joindre le serveur.');
